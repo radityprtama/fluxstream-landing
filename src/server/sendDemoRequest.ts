@@ -10,26 +10,26 @@ interface DemoRequestData {
   companySize: string
 }
 
- export const sendDemoRequest = createServerFn({ method: 'POST' })
-   .inputValidator((data: DemoRequestData) => data)
-   .handler(async ({ data }) => {
+export const sendDemoRequest = createServerFn({ method: 'POST' })
+  .inputValidator((data: DemoRequestData) => data)
+  .handler(async ({ data }) => {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const { firstName, lastName, email, company, role, companySize } = data
 
     const { error: userEmailError } = await resend.emails.send({
-      from: 'FluxStream <onboarding@resend.dev>',
+      from: 'Orbin <onboarding@resend.dev>',
       to: [email],
-      subject: 'Your FluxStream Demo Request Received',
+      subject: 'Your Orbin Demo Request Received',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="text-align: center; margin-bottom: 32px;">
             <div style="display: inline-block; width: 48px; height: 48px; background: linear-gradient(135deg, #34d399, #059669); border-radius: 12px; margin-bottom: 16px;"></div>
-            <h1 style="color: #0f172a; font-size: 24px; margin: 0;">FluxStream</h1>
+            <h1 style="color: #0f172a; font-size: 24px; margin: 0;">Orbin</h1>
           </div>
           <h2 style="color: #0f172a; font-size: 20px; margin-bottom: 16px;">Hi ${firstName},</h2>
           <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-            Thank you for requesting a demo of FluxStream! We're excited to show you how our AI-driven orchestration engine can transform your workflows.
+            Thank you for requesting a demo of Orbin! We're excited to show you how our AI-driven orchestration engine can transform your workflows.
           </p>
           <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
             One of our product specialists will reach out within 24 hours to schedule a personalized demo tailored to ${company}'s needs.
@@ -44,7 +44,7 @@ interface DemoRequestData {
           </div>
           <p style="color: #475569; font-size: 16px; line-height: 1.6;">
             Best regards,<br/>
-            <strong>The FluxStream Team</strong>
+            <strong>The Orbin Team</strong>
           </p>
         </div>
       `,
@@ -56,8 +56,8 @@ interface DemoRequestData {
     }
 
     const { error: salesEmailError } = await resend.emails.send({
-      from: 'FluxStream Leads <onboarding@resend.dev>',
-      to: ['sales@fluxstream.io'],
+      from: 'Orbin Leads <onboarding@resend.dev>',
+      to: ['sales@Orbin.io'],
       subject: `New Demo Request: ${company}`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">

@@ -1,4 +1,4 @@
-# FluxStream
+# Orbin
 
 A modern, full-featured landing page template built with TanStack Start, React 19, and shadcn/ui.
 
@@ -36,7 +36,7 @@ A modern, full-featured landing page template built with TanStack Start, React 1
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd fluxstream-start
+cd Orbin-start
 
 # Install dependencies
 bun install

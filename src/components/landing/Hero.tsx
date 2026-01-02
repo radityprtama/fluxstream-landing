@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
         </h1>
 
         <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          FluxStream replaces fragile scripts with a resilient, AI-driven
+          Orbin replaces fragile scripts with a resilient, AI-driven
           orchestration engine. Connect your stack, define your logic, and let
           the system optimize for throughput.
         </p>

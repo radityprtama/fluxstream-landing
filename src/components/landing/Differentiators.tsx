@@ -7,7 +7,7 @@ export const Differentiators: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 border border-slate-300 text-slate-600 text-xs font-bold uppercase tracking-wider mb-6">
-            Why FluxStream?
+            Why Orbin?
           </div>
           <h2 className="font-display font-bold text-4xl md:text-5xl text-slate-900 mb-6">
             Stop fighting your <br />
@@ -16,7 +16,7 @@ export const Differentiators: React.FC = () => {
             </span>
           </h2>
           <p className="text-slate-500 text-lg leading-relaxed">
-            Legacy iPaaS tools were built for a different era. FluxStream brings
+            Legacy iPaaS tools were built for a different era. Orbin brings
             modern engineering practices to workflow automation.
           </p>
         </div>
@@ -30,8 +30,8 @@ export const Differentiators: React.FC = () => {
               Real-time Event Bus
             </h3>
             <p className="text-slate-500 text-sm mb-8 flex-1">
-              Traditional tools rely on polling intervals (5-15 mins).
-              FluxStream is purely event-driven.
+              Traditional tools rely on polling intervals (5-15 mins). Orbin is
+              purely event-driven.
             </p>
 
             <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -44,7 +44,7 @@ export const Differentiators: React.FC = () => {
               <div className="w-full h-px bg-slate-200" />
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-900 font-bold flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-brand-500" /> FluxStream
+                  <IconCheck className="w-4 h-4 text-brand-500" /> Orbin
                 </span>
                 <span className="text-brand-600 font-mono font-bold">
                   12ms latency

@@ -54,9 +54,9 @@ export const CodeIntegration: React.FC = () => {
               </span>
             </h2>
             <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-              Stop clicking through endless wizard steps. FluxStream lets you
-              define complex business logic using the languages you already
-              love. We handle the infrastructure, retries, and scalability.
+              Stop clicking through endless wizard steps. Orbin lets you define
+              complex business logic using the languages you already love. We
+              handle the infrastructure, retries, and scalability.
             </p>
 
             <ul className="space-y-4 mb-10">
