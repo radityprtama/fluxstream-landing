@@ -1,11 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
+import {
+  Navbar,
+  Hero,
+  Features,
+  Differentiators,
+  CodeIntegration,
+  Pricing,
+  Footer,
+  StickyBanner,
+} from '../components/landing'
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute('/')({
+  component: HomePage,
+})
 
-function App() {
+function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <div className="font-medium">Hello World</div>
+    <div className="min-h-screen font-sans selection:bg-brand-200 selection:text-brand-900">
+      <Navbar />
+      <main>
+        <Hero />
+        <Features />
+        <Differentiators />
+        <CodeIntegration />
+        <Pricing />
+      </main>
+      <Footer />
+      <StickyBanner />
     </div>
-  );
+  )
 }
