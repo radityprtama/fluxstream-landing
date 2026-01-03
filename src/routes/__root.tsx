@@ -22,6 +22,7 @@ export const Route = createRootRoute({
       {
         title: 'Orbin - Enterprise Workflow Orchestration',
       },
+      { rel: 'icon', href: '/orbin.png' },
     ],
     links: [
       {

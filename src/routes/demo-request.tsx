@@ -1,71 +1,165 @@
 import { createFileRoute } from '@tanstack/react-router'
-import React, { useState } from 'react'
-import { Navbar, Footer } from '../components/landing'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Footer, Navbar } from '../components/landing'
 import { sendDemoRequest } from '../server/sendDemoRequest'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { cn } from '@/lib/utils'
 
 const routePath = '/demo-request' as const
+
+const SITE_URL = 'https://orbin.my.id'
+const PAGE_URL = `${SITE_URL}/demo-request`
+const OG_IMAGE = `${SITE_URL}/orbin.png`
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: 'Request a Demo | Orbin',
+  description:
+    'Schedule a personalized demo of Orbin AI-powered workflow orchestration platform. Get a custom walkthrough, live Q&A, and ROI analysis for your enterprise.',
+  url: PAGE_URL,
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'Orbin',
+    url: SITE_URL,
+    logo: `${SITE_URL}/orbin.png`,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      email: 'sales@orbin.my.id',
+      availableLanguage: ['English'],
+    },
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Orbin',
+    url: SITE_URL,
+    logo: `${SITE_URL}/orbin.png`,
+  },
+  potentialAction: {
+    '@type': 'CommunicateAction',
+    target: PAGE_URL,
+    name: 'Request Demo',
+  },
+}
+
 export const Route = createFileRoute(routePath)({
+  head: () => ({
+    meta: [
+      { title: 'Request a Demo | Orbin - AI Workflow Orchestration Platform' },
+      {
+        name: 'description',
+        content:
+          "Schedule a personalized demo of Orbin's AI-powered workflow orchestration platform. See how enterprise teams automate processes and boost productivity. Response within 24 hours.",
+      },
+      { name: 'robots', content: 'index, follow' },
+      {
+        name: 'keywords',
+        content:
+          'workflow automation demo, AI orchestration demo, enterprise workflow, business process automation, Orbin demo request',
+      },
+      { property: 'og:title', content: 'Request a Demo | Orbin' },
+      {
+        property: 'og:description',
+        content:
+          "Schedule a personalized demo of Orbin's AI-powered workflow orchestration. Get a custom walkthrough, live Q&A, and ROI analysis.",
+      },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:url', content: PAGE_URL },
+      { property: 'og:image', content: OG_IMAGE },
+      { property: 'og:image:alt', content: 'Orbin Demo Request' },
+      { property: 'og:site_name', content: 'Orbin' },
+      { property: 'og:locale', content: 'en_US' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: 'Request a Demo | Orbin' },
+      {
+        name: 'twitter:description',
+        content:
+          "Schedule a personalized demo of Orbin's AI workflow orchestration platform.",
+      },
+      { name: 'twitter:image', content: OG_IMAGE },
+      { name: 'twitter:image:alt', content: 'Orbin Demo Request' },
+    ],
+    links: [{ rel: 'canonical', href: PAGE_URL }],
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(jsonLd),
+      },
+    ],
+  }),
   component: DemoRequestPage,
 })
 
-interface DemoFormData {
-  firstName: string
-  lastName: string
-  email: string
-  company: string
-  role: string
-  companySize: string
-  message: string
-}
+const demoFormSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email'),
+  company: z.string().min(1, 'Company name is required'),
+  role: z.string().min(1, 'Role is required'),
+  companySize: z.string().min(1, 'Please select a company size'),
+  message: z.string().optional(),
+})
+
+type DemoFormData = z.infer<typeof demoFormSchema>
 
 function DemoRequestPage() {
-  const [formData, setFormData] = useState<DemoFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    company: '',
-    role: '',
-    companySize: '',
-    message: '',
-  })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<DemoFormData>({
+    resolver: zodResolver(demoFormSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      company: '',
+      role: '',
+      companySize: '',
+      message: '',
+    },
+  })
+
+  const onSubmit = async (data: DemoFormData) => {
     setLoading(true)
-    setError('')
+    setSubmitError('')
 
     try {
-      await sendDemoRequest({ data: formData })
+      await sendDemoRequest({ data })
       setSuccess(true)
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        company: '',
-        role: '',
-        companySize: '',
-        message: '',
-      })
+      reset()
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to submit request. Please try again.'
-      setError(errorMessage)
+      setSubmitError(errorMessage)
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   return (
@@ -158,7 +252,7 @@ function DemoRequestPage() {
               <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-200/80 shadow-2xl shadow-slate-200/50 p-8 lg:p-10 overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-50 to-transparent rounded-bl-full opacity-60" />
 
-                <form onSubmit={handleSubmit} className="relative">
+                <form onSubmit={handleSubmit(onSubmit)} className="relative">
                   <div className="mb-8">
                     <h2 className="font-display font-bold text-xl text-slate-900 mb-2">
                       Tell us about yourself
@@ -169,61 +263,55 @@ function DemoRequestPage() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-5 mb-5">
-                    <div className="group">
-                      <label
+                    <Field data-invalid={!!errors.firstName}>
+                      <FieldLabel
                         htmlFor="firstName"
-                        className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                        className="text-sm font-semibold text-slate-700 mb-2"
                       >
                         First Name *
-                      </label>
-                      <input
+                      </FieldLabel>
+                      <Input
                         id="firstName"
-                        name="firstName"
-                        type="text"
-                        required
-                        value={formData.firstName}
-                        onChange={handleChange}
                         placeholder="Jane"
-                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                        aria-invalid={!!errors.firstName}
+                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300 h-auto"
+                        {...register('firstName')}
                       />
-                    </div>
-                    <div className="group">
-                      <label
+                      <FieldError errors={[errors.firstName]} />
+                    </Field>
+                    <Field data-invalid={!!errors.lastName}>
+                      <FieldLabel
                         htmlFor="lastName"
-                        className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                        className="text-sm font-semibold text-slate-700 mb-2"
                       >
                         Last Name *
-                      </label>
-                      <input
+                      </FieldLabel>
+                      <Input
                         id="lastName"
-                        name="lastName"
-                        type="text"
-                        required
-                        value={formData.lastName}
-                        onChange={handleChange}
                         placeholder="Doe"
-                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                        aria-invalid={!!errors.lastName}
+                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300 h-auto"
+                        {...register('lastName')}
                       />
-                    </div>
+                      <FieldError errors={[errors.lastName]} />
+                    </Field>
                   </div>
 
-                  <div className="mb-5 group">
-                    <label
+                  <Field data-invalid={!!errors.email} className="mb-5">
+                    <FieldLabel
                       htmlFor="email"
-                      className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                      className="text-sm font-semibold text-slate-700 mb-2"
                     >
                       Work Email *
-                    </label>
+                    </FieldLabel>
                     <div className="relative">
-                      <input
+                      <Input
                         id="email"
-                        name="email"
                         type="email"
-                        required
-                        value={formData.email}
-                        onChange={handleChange}
                         placeholder="jane@company.com"
-                        className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                        aria-invalid={!!errors.email}
+                        className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300 h-auto"
+                        {...register('email')}
                       />
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -241,26 +329,24 @@ function DemoRequestPage() {
                         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                       </svg>
                     </div>
-                  </div>
+                    <FieldError errors={[errors.email]} />
+                  </Field>
 
                   <div className="grid md:grid-cols-2 gap-5 mb-5">
-                    <div className="group">
-                      <label
+                    <Field data-invalid={!!errors.company}>
+                      <FieldLabel
                         htmlFor="company"
-                        className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                        className="text-sm font-semibold text-slate-700 mb-2"
                       >
                         Company *
-                      </label>
+                      </FieldLabel>
                       <div className="relative">
-                        <input
+                        <Input
                           id="company"
-                          name="company"
-                          type="text"
-                          required
-                          value={formData.company}
-                          onChange={handleChange}
                           placeholder="Acme Inc."
-                          className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                          aria-invalid={!!errors.company}
+                          className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300 h-auto"
+                          {...register('company')}
                         />
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -283,24 +369,22 @@ function DemoRequestPage() {
                           <path d="M10 18h4" />
                         </svg>
                       </div>
-                    </div>
-                    <div className="group">
-                      <label
+                      <FieldError errors={[errors.company]} />
+                    </Field>
+                    <Field data-invalid={!!errors.role}>
+                      <FieldLabel
                         htmlFor="role"
-                        className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                        className="text-sm font-semibold text-slate-700 mb-2"
                       >
                         Role *
-                      </label>
+                      </FieldLabel>
                       <div className="relative">
-                        <input
+                        <Input
                           id="role"
-                          name="role"
-                          type="text"
-                          required
-                          value={formData.role}
-                          onChange={handleChange}
                           placeholder="Engineering Manager"
-                          className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                          aria-invalid={!!errors.role}
+                          className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium hover:border-slate-300 h-auto"
+                          {...register('role')}
                         />
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -320,88 +404,99 @@ function DemoRequestPage() {
                           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                         </svg>
                       </div>
-                    </div>
+                      <FieldError errors={[errors.role]} />
+                    </Field>
                   </div>
 
-                  <div className="mb-5 group">
-                    <label
+                  <Field data-invalid={!!errors.companySize} className="mb-5">
+                    <FieldLabel
                       htmlFor="companySize"
-                      className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                      className="text-sm font-semibold text-slate-700 mb-2"
                     >
                       Company Size *
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="companySize"
-                        name="companySize"
-                        required
-                        value={formData.companySize}
-                        onChange={handleChange}
-                        className="w-full pl-11 pr-10 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium appearance-none cursor-pointer hover:border-slate-300"
-                      >
-                        <option value="">Select company size</option>
-                        <option value="1-10">1-10 employees</option>
-                        <option value="11-50">11-50 employees</option>
-                        <option value="51-200">51-200 employees</option>
-                        <option value="201-500">201-500 employees</option>
-                        <option value="500+">500+ employees</option>
-                      </select>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                      >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </div>
-                  </div>
+                    </FieldLabel>
+                    <Controller
+                      name="companySize"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="relative">
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger
+                              id="companySize"
+                              aria-invalid={!!errors.companySize}
+                              className={cn(
+                                'w-full pl-11 pr-10 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all duration-200 text-sm font-medium cursor-pointer hover:border-slate-300 h-auto',
+                                !field.value && 'text-slate-400',
+                              )}
+                            >
+                              <SelectValue placeholder="Select company size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1-10">
+                                1-10 employees
+                              </SelectItem>
+                              <SelectItem value="11-50">
+                                11-50 employees
+                              </SelectItem>
+                              <SelectItem value="51-200">
+                                51-200 employees
+                              </SelectItem>
+                              <SelectItem value="201-500">
+                                201-500 employees
+                              </SelectItem>
+                              <SelectItem value="500+">
+                                500+ employees
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                        </div>
+                      )}
+                    />
+                    <FieldError errors={[errors.companySize]} />
+                  </Field>
 
-                  <div className="mb-6 group">
-                    <label
+                  <Field data-invalid={!!errors.message} className="mb-6">
+                    <FieldLabel
                       htmlFor="message"
-                      className="block text-sm font-semibold text-slate-700 mb-2 group-focus-within:text-brand-600 transition-colors"
+                      className="text-sm font-semibold text-slate-700 mb-2"
                     >
                       What are you looking to automate?
                       <span className="ml-2 text-slate-400 font-normal">
                         (Optional)
                       </span>
-                    </label>
-                    <textarea
+                    </FieldLabel>
+                    <Textarea
                       id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
                       placeholder="Tell us about your use case, current challenges, or specific workflows you'd like to improve..."
                       rows={4}
+                      aria-invalid={!!errors.message}
                       className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white resize-none transition-all duration-200 text-sm font-medium hover:border-slate-300"
+                      {...register('message')}
                     />
-                  </div>
+                    <FieldError errors={[errors.message]} />
+                  </Field>
 
-                  {error && (
+                  {submitError && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -419,18 +514,19 @@ function DemoRequestPage() {
                         <line x1="12" x2="12" y1="8" y2="12" />
                         <line x1="12" x2="12.01" y1="16" y2="16" />
                       </svg>
-                      {error}
+                      {submitError}
                     </div>
                   )}
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className={`group w-full h-14 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 ${
+                    className={cn(
+                      'group w-full h-14 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300',
                       loading
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30 hover:-translate-y-0.5'
-                    }`}
+                        : 'bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30 hover:-translate-y-0.5',
+                    )}
                   >
                     {loading ? (
                       <>
@@ -474,7 +570,7 @@ function DemoRequestPage() {
                         </svg>
                       </>
                     )}
-                  </button>
+                  </Button>
                 </form>
               </div>
             </div>
@@ -662,7 +758,7 @@ function DemoRequestPage() {
                     we'll get back to you right away.
                   </p>
                   <a
-                    href="mailto:sales@Orbin.io"
+                    href="mailto:sales@orbin.my.id"
                     className="inline-flex items-center gap-2 text-brand-400 hover:text-brand-300 font-semibold text-sm transition-colors duration-200 group/link"
                   >
                     <svg
@@ -679,7 +775,7 @@ function DemoRequestPage() {
                       <rect width="20" height="16" x="2" y="4" rx="2" />
                       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                     </svg>
-                    sales@Orbin.io
+                    sales@orbin.my.id
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="14"
